@@ -1,0 +1,621 @@
+Public YearSheet As String
+Sub Incentive()
+
+Dim wkb As Workbook
+Dim wks As Worksheet
+Set ws = ActiveSheet
+Dim myPath As String
+Dim myPath2 As String
+Dim myPath3 As String
+Dim strFile As String
+Dim myFile As String
+Dim wkbSource As Workbook
+Set wkbDest = ThisWorkbook
+Dim LastRow As Long
+Dim PivotRange As Range
+Dim lastcolumn As Long
+Dim Count As Integer
+Dim myPath2Filename As String
+
+
+    
+'Date format
+dt = Format(Now(), "mmm_yy")
+mn = Format(Now(), "mmmm")
+
+
+'Filepath for execucation
+
+myPath = ThisWorkbook.Sheets("Sheet1").Range("C3").Value
+myPath2 = ThisWorkbook.Sheets("Sheet1").Range("C4").Value
+
+myPath4 = ThisWorkbook.Sheets("Sheet1").Range("C6").Value
+Debug.Print
+myPathFilename = ThisWorkbook.Sheets("Sheet1").Range("D3").Value
+myPath2Filename = ThisWorkbook.Sheets("Sheet1").Range("D4").Value
+
+myPath3 = ThisWorkbook.Sheets("Sheet1").Range("C5").Value
+
+myPath5 = ThisWorkbook.Sheets("Sheet1").Range("D6").Value
+
+
+Call CreateFolder(myPath3)
+''Call folder(myPath3)
+
+
+
+strFile = myPath4
+'    Debug.Print strFile
+
+
+If Dir(strFile) = "" Then
+    'File Exists
+'        Debug.Print "file Exist : " & strFileName
+
+    Call CopyFileWithFSO(myPath2, myPath3, True)
+    
+    Name ThisWorkbook.Sheets("Sheet1").Range("D5").Value As myPath4
+  
+    
+Else
+
+    ''MsgBox "found"
+'        Debug.Print "File does not Exist : " & strFileName
+End If
+
+
+'Exit Sub
+
+
+Workbooks.Open Filename:=myPath
+ActiveSheet.Select
+
+Workbooks.Open Filename:=myPath4
+ActiveSheet.Select
+
+Application.AskToUpdateLinks = False
+Application.DisplayAlerts = True
+
+
+Windows(myPath5).Activate
+
+''Hide sheet
+
+
+Set wb = ActiveWorkbook
+Set ws = Sheets("AA")
+wb.Activate
+ws.Select
+
+Sheets("AA").Select
+ActiveWindow.SelectedSheets.Visible = False
+
+'' Rename as per current month
+
+
+ThisWorkbook.Sheets("Sheet1").Range("K2").Value = ("=IF(TEXT($E$2,""mmmm"")=""December"",(YEAR(TODAY())-1),(TEXT(NOW(),""YYYY"")))")
+YearSheet = ThisWorkbook.Sheets("Sheet1").Range("K2").Value
+''Sheets("MONTH").Name = "MONTH " & Format(DateAdd("m", -1, Now()), "DD mm yyyy")
+''Sheets("MONTH").Name = "MONTH " & Format(Now(), "MMM YYYY")
+''Sheets("MONTH").Name = "Month " & Format(ThisWorkbook.Sheets("Sheet1").Range("E2"), "YYYY") & Text(Now(), " YYYY")
+
+
+
+'Sheets.Add.Name = "Month " & Format(ThisWorkbook.Sheets("Sheet1").Range("E2"), "MMMM") & " " & YearSheet
+
+
+Sheets("MONTH").Name = "Month " & Format(ThisWorkbook.Sheets("Sheet1").Range("E2"), "MMMM") & " " & YearSheet
+
+Cells.Select
+''Application.CutCopyMode = False
+Selection.ClearContents
+
+Sheets("AA 2").Select
+Sheets("AA").Visible = True
+''Import CA journaliere file into current month INCENTIVE LMC file
+
+
+Windows(myPathFilename).Activate
+''Sheets("Base").Select
+
+''Sheets("Critère").Select
+''ActiveSheet.Range("B4").Value = ThisWorkbook.Sheets("Sheet1").Range("F2").Value
+''ActiveSheet.Range("C4").Value = ThisWorkbook.Sheets("Sheet1").Range("G2").Value
+
+Sheets("Base").Select
+Cells.Select
+Application.CutCopyMode = False
+Selection.Copy
+
+
+'Windows(myPathFilename).Activate
+''Sheets("Base").Select
+'Cells.Select
+'Selection.Copy
+
+Windows(myPath5).Activate
+Sheets("Month " & Format(ThisWorkbook.Sheets("Sheet1").Range("E2"), "MMMM") & " " & YearSheet).Select
+Range("A1").Select
+Range("A1").PasteSpecial Paste:=xlPasteValues
+Application.CutCopyMode = False
+
+
+Range("AA1").Formula = "=COUNTA(A:A)"
+
+'Insert Pivot table
+
+Range("A1").Select
+
+SheetNAMEData = ("Month " & Format(ThisWorkbook.Sheets("Sheet1").Range("E2"), "MMMM") & " " & YearSheet)
+
+
+'' Clear previous data from PIVORT 2 & Change source in pivot
+
+Sheets("PIVOT 2").Select
+Cells.Select
+Selection.ClearContents
+
+Application.DisplayAlerts = False
+Sheets("PIVOT").Delete
+Application.DisplayAlerts = True
+
+Sheets.Add
+ActiveSheet.Name = "PIVOT"
+
+''ActiveSheet.PivotTables("PivotTable1").ClearTable
+''Application.CutCopyMode = False
+Range("A1").Select
+    ActiveWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+    SheetNAMEData & "!R1C1:R" & Sheets(SheetNAMEData).Range("AA1").Value & "C18" _
+    , Version:=6).CreatePivotTable _
+        TableDestination:="PIVOT!R1C1", TableName:="PivotTable1", DefaultVersion _
+        :=6
+
+''ActiveSheet.PivotTables("PivotTable1").ChangePivotCache ActiveWorkbook. _
+    PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+    SheetNAMEData & "!R1C1:R" & Sheets(SheetNAMEData).Range("AA1").Value & "C18" _
+        , Version:=6)
+        With ActiveSheet.PivotTables("PivotTable1").PivotFields("CLIENT")
+        .Orientation = xlRowField
+        .Position = 1
+        End With
+        With ActiveSheet.PivotTables("PivotTable1").PivotFields("NOM")
+        .Orientation = xlRowField
+        .Position = 2
+        End With
+        With ActiveSheet.PivotTables("PivotTable1").PivotFields("NOM PRODUIT")
+        .Orientation = xlColumnField
+        .Position = 1
+        End With
+        ActiveSheet.PivotTables("PivotTable1").AddDataField ActiveSheet.PivotTables( _
+        "PivotTable1").PivotFields("VOLUME"), "Sum of VOLUME", xlSum
+        Range("A4").Select
+        With ActiveSheet.PivotTables("PivotTable1")
+        .InGridDropZones = True
+        .RowAxisLayout xlTabularRow
+        End With
+        ActiveSheet.PivotTables("PivotTable1").PivotFields("CLIENT").Subtotals = Array( _
+        False, False, False, False, False, False, False, False, False, False, False, False)
+        
+        
+
+ActiveWorkbook.RefreshAll
+
+With ActiveSheet.PivotTables("PivotTable1")
+    .ColumnGrand = True
+    .RowGrand = True
+End With
+
+Cells.Select
+Selection.Copy
+
+Sheets("PIVOT 2").Select
+Range("A1").PasteSpecial Paste:=xlPasteValues
+Application.CutCopyMode = False
+
+Call Bagspivot
+
+Sheets("AA").Select
+Cells.Select
+Application.CutCopyMode = False
+ActiveWorkbook.RefreshAll
+
+
+Sheets.Add
+ActiveSheet.Name = "Compair"
+
+
+Range("A1").Select
+ActiveCell.FormulaR1C1 = "PIVOT 2"
+Range("I1").Select
+ActiveCell.FormulaR1C1 = "AA"
+
+
+Sheets("PIVOT 2").Select
+Range("A3:B3").Select
+Range(Selection, Selection.End(xlDown)).Select
+Application.CutCopyMode = False
+Selection.Copy
+Sheets("Compair").Select
+Range("A2").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+Application.CutCopyMode = False
+
+Sheets("AA").Select
+Range("A1").Select
+''Range("A19:B19").Select
+''Range(Selection, Selection.End(xlDown)).Select
+''Application.CutCopyMode = False
+Cells.Find(What:="Customer", After:=ActiveCell, LookIn:=xlFormulas, _
+LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
+MatchCase:=False, SearchFormat:=False).Activate
+
+Range(Selection, Selection.Offset(0, 1)).Select
+Range(Selection, Selection.Offset(509, 0)).Select
+
+Selection.Copy
+Sheets("Compair").Select
+Dim lastrowCompair As Long
+lastrowCompair = Range("A" & Rows.Count).End(xlUp).Row
+
+Range("I2").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+
+
+
+Range("F1").Select
+ActiveCell.FormulaR1C1 = "Compare"
+Range("F2").Select
+Application.CutCopyMode = False
+''ActiveCell.FormulaR1C1 = "=IF(COUNTIF(R3C9:R900C9,RC[-5])>=1,""Present"",IF(RC[-5]="""","""",""Not Found""))"
+ActiveCell.Formula = "=IF(COUNTIF($I$3:$I$900,A2)>=1,""Present"",IF(OR(A2="""",A2=""Grand Total""),"""",""Not Found""))"
+
+Range("G1").Select
+ActiveCell.FormulaR1C1 = "=COUNTIF(C[-1],""Not Found"")"
+Range("G2").Select
+Range("F2").Select
+Selection.AutoFill Destination:=Range("F2:F" & lastrowCompair), Type:=xlFillDefault
+Range("F2:F" & lastrowCompair).Select
+
+Range("F1").Select
+Selection.AutoFilter
+ActiveSheet.Range("$F$1:$F$" & lastrowCompair).AutoFilter Field:=1, Criteria1:="Not Found"
+
+Dim comparison As Integer
+
+Sheets("Compair").Select
+
+comparison = Range("G1").Value
+Dim LastrowCompaire As Long
+Dim current As Long
+
+
+LastrowCompaire = Range("A" & Rows.Count).End(xlUp).Row
+If comparison <> 0 Or comparison <> "0" Then
+    Range("A1").Select
+Call LoopUntilCellAppear
+
+current = ActiveCell.Row
+Range("A" & current & ":B" & LastrowCompaire).Select
+'    Range(Selection, Selection.Offset(0, 1)).Select
+'    ''Range(Selection, Selection.Offset(10, 0)).Select
+'    Range(Selection, Selection.End(xlDown)).Select
+'    Selection.Copy
+
+ ''Cells.Select
+    Selection.SpecialCells(xlCellTypeVisible).Select
+    Selection.Copy
+Else
+
+'Range("A1").Select
+'Call LoopUntilCellAppear
+'Range(Selection, Selection.Offset(0, 1)).Select
+'Range(Selection, Selection.Offset(10, 0)).Select
+'Selection.Copy
+
+Range("A1").Select
+Call LoopUntilCellAppear
+
+current = ActiveCell.Row
+Range("A" & current & ":B" & LastrowCompaire).Select
+'    Range(Selection, Selection.Offset(0, 1)).Select
+'    ''Range(Selection, Selection.Offset(10, 0)).Select
+'    Range(Selection, Selection.End(xlDown)).Select
+'    Selection.Copy
+
+ ''Cells.Select
+    Selection.SpecialCells(xlCellTypeVisible).Select
+    Selection.Copy
+
+End If
+
+
+
+
+
+
+Sheets("AA").Select
+Range("A1").Select
+Cells.Find(What:="Customer", After:=ActiveCell, LookIn:=xlFormulas, _
+LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
+MatchCase:=False, SearchFormat:=False).Activate
+
+Selection.Offset(2, 0).Select
+Selection.End(xlDown).Select
+
+Selection.Offset(1, 0).Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+
+
+Selection.Offset(0, 3).Select
+    Range(Selection, Selection.End(xlToRight)).Select
+    Range(Selection, Selection.End(xlUp)).Select
+   Application.CutCopyMode = False
+   Selection.FillDown
+   
+
+   
+
+
+Cells.Select
+Selection.Copy
+Sheets("AA 2").Select
+Range("A1").Select
+ActiveSheet.Paste
+Application.CutCopyMode = False
+
+ActiveWorkbook.Save
+
+Application.DisplayAlerts = False
+ActiveWindow.Close False
+Application.DisplayAlerts = False
+
+ActiveWorkbook.Save
+
+Application.DisplayAlerts = False
+ActiveWindow.Close False
+Application.DisplayAlerts = False
+
+
+End Sub
+
+Sub XXX()
+
+
+
+LastRow = Range("A" & Rows.Count).End(xlUp).Row
+LastRow = LastRow - 2
+Range("D19").Select
+ActiveCell.FormulaR1C1 = _
+"=IFERROR((VLOOKUP(RC[-3],'PIVOT 2'!C1:C17,3,FALSE)),0)"
+Range("D19:M" & LastRow).Select
+Selection.FillDown
+End Sub
+
+
+Sub LoopUntilCellAppear()
+ActiveCell.Offset(1, 0).Activate
+Do Until Selection.EntireRow.Hidden = False
+If Selection.EntireRow.Hidden = True Then
+ActiveCell.Offset(1, 0).Activate
+End If
+Loop
+End Sub
+
+
+
+
+
+Sub CreateFolder(createFolder1)
+
+ Dim fdObj As Object
+ Dim slash As String
+ slash = "\"
+ 
+ pathWorkbook = ThisWorkbook.Path
+
+
+If Dir(createFolder1) <> "" Then
+    Exit Sub
+    
+End If
+
+
+ Set fdObj = CreateObject("Scripting.FileSystemObject")
+
+    If Not fdObj.FolderExists(createFolder1) Then
+        fdObj.CreateFolder (createFolder1)
+    End If
+
+End Sub
+
+
+ Sub CopyFileWithFSO(SourceFilePath As String, DestPath As String, OverWrite As Boolean)
+' (1) copies one file from one folder to another folder with the VBA FileSystemObject
+' (2) contains extensive error handling (safeguards)
+' (3) requires a reference to the object library "Microsoft Scripting Runtime" under Options > Tools > References...
+' in the Visual Basic Editor.
+
+    Dim blFileExists As Boolean, blSourceErr As Boolean
+    Dim strFileName As String, strSuccessMsg As String, strNewDestPath As String, strNewSourcePath As String
+    Dim FSO As Scripting.FileSystemObject
+    Dim strErrMsg As String
+    
+    Set FSO = New Scripting.FileSystemObject
+    
+    With FSO
+        
+        strNewDestPath = .BuildPath(.GetAbsolutePathName(DestPath), "\")
+        strFileName = .GetFileName(SourceFilePath)
+    
+        'check if the source file exists
+        If Not .FileExists(SourceFilePath) Then
+            
+            ' check if the root drive was specified
+            If .DriveExists(Left(SourceFilePath, 2)) Then
+                blSourceErr = True
+            
+            ' the provided source path is incomplete
+            ' build new path and ask the user if he accepts the suggestion
+            Else
+                strNewSourcePath = .BuildPath(.GetAbsolutePathName(SourceFilePath), "")
+                If Not MsgBox("The source path " & Chr(34) & SourceFilePath & Chr(34) & _
+                    " is incomplete. Will you accept the following suggestion: " _
+                    & Chr(34) & strNewSourcePath & Chr(34) & "?", vbYesNo, "Confirm new source path") = vbYes Then _
+                        blSourceErr = True
+            End If
+            
+            ' error
+            If blSourceErr Then _
+                strErrMsg = "The source file," & Chr(34) & strFileName & Chr(34) & _
+                        " does not exist, or the specified path to the file, " & Chr(34) & _
+                        Replace(SourceFilePath, strFileName, "") & Chr(34) & " is incorrect."
+        
+        ' check if the destination folder already exists
+        ElseIf Not .FolderExists(strNewDestPath) Then
+        
+            ' prompt the user if the destination folder should be created
+            If MsgBox("The destination folder, " & Chr(34) & strNewDestPath & Chr(34) & ", does not exist. Do you want to create it?", vbYesNo, _
+                "Create new folder?") = vbYes Then
+                .CreateFolder (strNewDestPath)
+            Else
+                strErrMsg = "The destination folder could not be created."
+            End If
+        
+        ' check if the file already exists in the destination folder
+        Else
+            blFileExists = .FileExists(strNewDestPath & strFileName)
+            If Not OverWrite Then
+                If blFileExists Then _
+                    strErrMsg = "The file, " & Chr(34) & strFileName & Chr(34) & _
+                        ", already exists in the destination folder, " & Chr(34) & _
+                        strNewDestPath & Chr(34) & "."
+            End If
+        End If
+        
+        ' attempt to copy file
+        If strErrMsg = vbNullString Then
+            On Error Resume Next
+            If strNewSourcePath = vbNullString Then strNewSourcePath = SourceFilePath
+            Call .CopyFile(strNewSourcePath, strNewDestPath, OverWrite)
+            If Err.Number <> 0 Then strErrMsg = "Run-time error " & Err.Number & Chr(10) & Err.Description
+            On Error GoTo 0
+        End If
+        
+        ' succesful copy
+        If strErrMsg = vbNullString Then
+            strSuccessMsg = "The file" & Chr(34) & strFileName & Chr(34) & " was copied to " & _
+                Chr(34) & strNewDestPath & Chr(34) & "."
+            If blFileExists Then strSuccessMsg = strSuccessMsg & Chr(10) & _
+                "(Note, the existing file in the destination folder was overwritten)."
+            'MsgBox strSuccessMsg, vbInformation, "File copied"
+        
+        ' error
+        Else
+            MsgBox strErrMsg, vbCritical, "Error!"
+        End If
+        
+    End With
+
+End Sub
+
+
+
+
+Sub folder()
+
+thisfolderpath = ThisWorkbook.Path
+
+ThisMonthFolder = thisfolderpath & "\" & Format(DateAdd("M", -1, Now), "MMMM")
+
+If Dir(ThisMonthFolder) = "" Then
+    CreateFolder (ThisMonthFolder)
+End If
+
+BagsFolder = ThisMonthFolder & "\FinalData\"
+
+If Dir(BagsFolder) = "" Then
+    CreateFolder (FinalDataFolder)
+End If
+
+
+End Sub
+
+
+
+
+Sub Bagspivot()
+
+Dim LastRow As Long
+
+'' copy Coloumn bags and putting into different sheets
+'MsgBox YearSheet
+'Sheets(("Month " & Format(ThisWorkbook.Sheets("Sheet1").Range("E2"), "MMMM") & " " & YearSheet)).Select
+Sheets(("Month " & Format(ThisWorkbook.Sheets("Sheet1").Range("E2"), "MMMM") & " " & YearSheet)).Select
+''Sheets("Month May 2020").Select
+Columns("K:K").Select
+Selection.Copy
+''Sheets.Add
+''ActiveSheet.Name = "Records"
+Sheets("Records").Visible = True
+Sheets("Records").Select
+Range("B1").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+    :=False, Transpose:=False
+Application.CutCopyMode = False
+
+
+
+ActiveSheet.Range("$B$1:$B$100000").RemoveDuplicates Columns:=1, Header:=xlNo
+        
+    ActiveWorkbook.Worksheets("Records").Sort.SortFields.Add2 Key:=Range("B2"), _
+    SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+With ActiveWorkbook.Worksheets("Records").Sort
+    .SetRange Range("B2:B50")
+    .Header = xlNo
+    .MatchCase = False
+    .Orientation = xlTopToBottom
+    .SortMethod = xlPinYin
+    .Apply
+End With
+   
+
+LastRow = Range("B" & Rows.Count).End(xlUp).Row
+Dim i As Integer
+For i = 3 To LastRow
+Range("A" & (i - 1)).Value = i
+
+Next i
+
+
+Range("c2").Select
+ActiveCell.Formula = "=IFERROR(VLOOKUP(B2,AA!AM:AN,2,0),"""")"
+Range("C2:C" & LastRow).Select
+   Selection.FillDown
+Sheets("Records").Visible = False
+
+End Sub
+
+
+
+
+
+
+Sub test()
+
+
+
+'' Rename as per current month
+ThisWorkbook.Sheets("Sheet1").Range("K2").Value = ("=IF(TEXT($E$2,""mmmm"")=""December"",(YEAR(TODAY())-1),(TEXT(NOW(),""YYYY"")))")
+YearSheet = ThisWorkbook.Sheets("Sheet1").Range("K2").Value
+''Sheets("MONTH").Name = "MONTH " & Format(DateAdd("m", -1, Now()), "DD mm yyyy")
+''Sheets("MONTH").Name = "MONTH " & Format(Now(), "MMM YYYY")
+''Sheets("MONTH").Name = "Month " & Format(ThisWorkbook.Sheets("Sheet1").Range("E2"), "YYYY") & Text(Now(), " YYYY")
+Sheets("MONTH").Name = "Month " & Format(ThisWorkbook.Sheets("Sheet1").Range("E2"), "MMMM") & " " & YearSheet
+Cells.Select
+
+
+End Sub
