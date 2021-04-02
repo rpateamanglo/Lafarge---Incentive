@@ -1,0 +1,889 @@
+
+Option Explicit
+Function OrdinalDate(myDate As Date)
+    Dim dDate As Integer
+    Dim dText As String
+    Dim mDate As Integer
+    Dim mmmText As String
+
+    dDate = Day(myDate)
+    mDate = Month(myDate)
+
+    Select Case dDate
+        Case 1: dText = "st"
+        Case 2: dText = "nd"
+        Case 3: dText = "rd"
+        Case 21: dText = "st"
+        Case 22: dText = "nd"
+        Case 23: dText = "rd"
+        Case 31: dText = "st"
+        Case Else: dText = "th"
+    End Select
+
+    Select Case mDate
+        Case 1: mmmText = " January"
+        Case 2: mmmText = " February"
+        Case 3: mmmText = " March"
+        Case 4: mmmText = " April"
+        Case 5: mmmText = " May"
+        Case 6: mmmText = " June"
+        Case 7: mmmText = " July"
+        Case 8: mmmText = " August"
+        Case 9: mmmText = " September"
+        Case 10: mmmText = " October"
+        Case 11: mmmText = " November"
+        Case 12: mmmText = " December"
+    End Select
+
+    OrdinalDate = dDate & dText & mmmText
+End Function
+
+Sub Macro4()
+'
+' Macro4 Macro
+'
+
+'
+    Range("B2").Select
+    ActiveCell.FormulaR1C1 = _
+        "=TEXT(DATEVALUE(Main!R2C21),""yyyymm"")&""_""&TEXT(ROW(RC)-1,""000"")"
+    Range("B4").Select
+End Sub
+Sub Macro5()
+'
+' Macro5 Macro
+'
+
+'
+    ActiveCell.FormulaR1C1 = _
+        "=TEXT(DATEVALUE(Main!R2C21),""yyyymm"")&""_""&TEXT((COUNTA(Bagscollection!C)-1) + ROW(RC)-1,""000"")"
+    Range("B3").Select
+End Sub
+
+
+Sub PrintSelectionToPDF()
+Dim invoiceRng As Range
+Dim pdfile As String
+Vpath = Sheets("Main").Range("D14").Value
+'Setting range to be printed
+Set invoiceRng = Sheets("Template-Bag1").Range("A1:I42")
+'setting file name with a time stamp.
+pdfile = "invoice" & "_" & Format(Now(), "yyyymmdd_hhmmss") & ".pdf"
+''pdfile = "invoice" & "_" & ThisWorkbook.Sheets("Main").Range("U1", "mmdd_hhmmss") & ".pdf"
+'setting the fulli qualified name. The resultent pdf will be saved where the main file exists.
+pdfile = Vpath & strfile
+invoiceRng.ExportAsFixedFormat Type:=xlTypePDF, _
+Filename:=pdfile, _
+Quality:=xlQualityStandard, _
+IncludeDocProperties:=True, _
+IgnorePrintAreas:=False, _
+OpenAfterPublish:=False
+End Sub
+
+
+Sub GENERATINGPDFBags()
+
+Dim Amount As Long
+
+Vpath = Sheets("Main").Range("D18").Value
+Amount = ThisWorkbook.Sheets("Main").Range("H12").Value
+Filename = Vpath & Sheets("Main").Range("D16").Value & Sheets("Main").Range("D12").Value & ".pdf"
+
+Selection.EntireRow.Hidden = False
+
+''Amount = CInt(Amount)
+
+If Amount > 200000 Then
+    Sheets("Template-Bag2").Visible = True
+    
+    Sheets("Template-Bag2").Select
+    
+        Rows("22:30").Select
+    Selection.EntireRow.Hidden = False
+    
+      If Range("F25").Value = 0 Or Range("F25").Value = "" Then
+        Rows("25:25").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    If Range("F26").Value = 0 Or Range("F26").Value = "" Then
+        Rows("26:26").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F27").Value = 0 Or Range("F27").Value = "" Then
+        Rows("27:27").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F28").Value = 0 Or Range("F28").Value = "" Then
+        Rows("28:28").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F29").Value = 0 Or Range("F29").Value = "" Then
+        Rows("29:29").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+        If Range("F30").Value = 0 Or Range("F30").Value = "" Then
+            Rows("30:30").Select
+             Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    
+    Range("A1:I42").Select
+    'Range(Selection, Selection.End(xlToLeft)).Select
+    'Range(Selection, Selection.End(xlUp)).Select
+    'ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
+    "C:\Users\kavis\Documents\02-Projects\06-Lafarge\CREDITNOTE.pdf", Quality:= _
+    xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, _
+    OpenAfterPublish:=False
+    
+    ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
+    Filename, Quality:= _
+    xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, _
+    OpenAfterPublish:=False
+    Sheets("Template-Bag2").Visible = False
+Else
+
+    Sheets("Template-Bag1").Visible = True
+    Sheets("Template-Bag1").Select
+    
+    
+            Rows("22:30").Select
+    Selection.EntireRow.Hidden = False
+    
+      If Range("F25").Value = 0 Or Range("F25").Value = "" Then
+        Rows("25:25").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    If Range("F26").Value = 0 Or Range("F26").Value = "" Then
+        Rows("26:26").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F27").Value = 0 Or Range("F27").Value = "" Then
+        Rows("27:27").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F28").Value = 0 Or Range("F28").Value = "" Then
+        Rows("28:28").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F29").Value = 0 Or Range("F29").Value = "" Then
+        Rows("29:29").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+        If Range("F30").Value = 0 Or Range("F30").Value = "" Then
+            Rows("30:30").Select
+             Selection.EntireRow.Hidden = True
+    
+    End If
+    
+
+    
+    Range("A1:I42").Select
+    'Range(Selection, Selection.End(xlToLeft)).Select
+    'Range(Selection, Selection.End(xlUp)).Select
+    ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
+    Filename, Quality:= _
+    xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, _
+    OpenAfterPublish:=False
+    Sheets("Template-Bag1").Visible = False
+End If
+
+
+
+End Sub
+
+Sub GENERATINGPDFBulk()
+
+Dim Amount As Long
+
+Vpath = Sheets("Main").Range("D18").Value
+Amount = ThisWorkbook.Sheets("Main").Range("H12").Value
+Filename = Vpath & Sheets("Main").Range("D16").Value & Sheets("Main").Range("D12").Value & ".pdf"
+
+Selection.EntireRow.Hidden = False
+''Amount = CInt(Amount)
+If Amount > 200000 Then
+    Sheets("Template-Bulk2").Visible = True
+    
+    Sheets("Template-Bulk2").Select
+    
+    Rows("22:29").Select
+    Selection.EntireRow.Hidden = False
+    
+      If Range("F25").Value = 0 Or Range("F25").Value = "" Then
+        Rows("25:25").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    If Range("F26").Value = 0 Or Range("F26").Value = "" Then
+        Rows("26:26").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F27").Value = 0 Or Range("F27").Value = "" Then
+        Rows("27:27").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F28").Value = 0 Or Range("F28").Value = "" Then
+        Rows("28:28").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F29").Value = 0 Or Range("F29").Value = "" Then
+        Rows("29:29").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    Range("A1:I42").Select
+    'Range(Selection, Selection.End(xlToLeft)).Select
+    'Range(Selection, Selection.End(xlUp)).Select
+    'ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
+    "C:\Users\kavis\Documents\02-Projects\06-Lafarge\CREDITNOTE.pdf", Quality:= _
+    xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, _
+    OpenAfterPublish:=False
+    
+    ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
+    Filename, Quality:= _
+    xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, _
+    OpenAfterPublish:=False
+    Sheets("Template-Bulk2").Visible = False
+Else
+
+    Sheets("Template-Bulk1").Visible = True
+    Sheets("Template-Bulk1").Select
+    
+    
+        Rows("22:29").Select
+    Selection.EntireRow.Hidden = False
+    
+      If Range("F25").Value = 0 Or Range("F25").Value = "" Then
+        Rows("25:25").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    If Range("F26").Value = 0 Or Range("F26").Value = "" Then
+        Rows("26:26").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F27").Value = 0 Or Range("F27").Value = "" Then
+        Rows("27:27").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F28").Value = 0 Or Range("F28").Value = "" Then
+        Rows("28:28").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    If Range("F29").Value = 0 Or Range("F29").Value = "" Then
+        Rows("29:29").Select
+         Selection.EntireRow.Hidden = True
+    
+    End If
+    
+    Range("A1:I42").Select
+    'Range(Selection, Selection.End(xlToLeft)).Select
+    'Range(Selection, Selection.End(xlUp)).Select
+    ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
+    Filename, Quality:= _
+    xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, _
+    OpenAfterPublish:=False
+    Sheets("Template-Bulk1").Visible = False
+End If
+
+
+
+End Sub
+
+
+Sub looopBags()
+
+
+Countx = ThisWorkbook.Sheets("Main").Range("D5").Value
+
+
+Dim i As Integer
+
+For i = 1 To Countx
+    
+    
+    Call GENERATINGPDFBags
+    ThisWorkbook.Sheets("Main").Range("C5").Value = i
+    
+Next i
+
+End Sub
+
+
+Sub looopBulk()
+
+ThisWorkbook.Sheets("Main").Range("c5").Value = 1
+
+Countx = ThisWorkbook.Sheets("Main").Range("D5").Value
+
+
+Dim i As Integer
+
+For i = 1 To Countx
+    
+    
+    Call GENERATINGPDFBulk
+    ThisWorkbook.Sheets("Main").Range("C5").Value = i
+    
+Next i
+
+End Sub
+
+Sub BagCollection(path)
+
+
+    Dim Lastrow As Long
+
+    Sheets("Main").Range("D16").Value = "Bags_"
+    Sheets("Main").Range("C5").Value = "1"
+    Sheets("RawData").Select
+    
+   
+    'Range("A2").AutoFill Destination:=Range("A2:A" & Lastrow)
+    
+    Cells.Select
+    Selection.ClearContents
+    Sheets("Bagscollection").Select
+    
+    
+    Lastrow = Range("B" & Rows.Count).End(xlUp).Row
+    Range("A1:M" & Lastrow).Select
+    
+    Selection.Copy
+    
+    Sheets("RawData").Select
+    
+    
+    Range("A1").Select
+    ActiveSheet.Paste
+    Columns("A:A").Select
+    Application.CutCopyMode = False
+    Selection.Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    Range("A1").Select
+    ActiveCell.FormulaR1C1 = "Number"
+    Range("A2").Select
+    ActiveCell.FormulaR1C1 = "1"
+    Range("A2").Select
+    Selection.AutoFill Destination:=Range("A2:A" & Lastrow), Type:=xlFillSeries
+    
+
+
+    Sheets("Main").Select
+    
+    Call cheats(path)
+
+    Call looopBags
+End Sub
+
+Sub Bulkcollection(path)
+    
+    Dim Lastrow As Long
+    
+     Sheets("Main").Range("D16").Value = "Bulk_"
+     Sheets("Main").Range("C5").Value = "1"
+
+    Sheets("RawData").Select
+    
+   
+    'Range("A2").AutoFill Destination:=Range("A2:A" & Lastrow)
+    
+    Cells.Select
+    Selection.ClearContents
+    Sheets("Bulkcollection").Select
+    
+    
+    Lastrow = Range("B" & Rows.Count).End(xlUp).Row
+    Range("A1:M" & Lastrow).Select
+    
+    Selection.Copy
+    
+    Sheets("RawData").Select
+    
+    
+    Range("A1").Select
+    ActiveSheet.Paste
+    Columns("A:A").Select
+    Application.CutCopyMode = False
+    Selection.Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    Range("A1").Select
+    ActiveCell.FormulaR1C1 = "Number"
+    Range("A2").Select
+    ActiveCell.FormulaR1C1 = "1"
+    Range("A2").Select
+    Selection.AutoFill Destination:=Range("A2:A" & Lastrow), Type:=xlFillSeries
+    
+    Sheets("Main").Select
+    Call cheats(path)
+    Call looopBulk
+End Sub
+
+
+Sub main()
+
+thisfolderpath = ThisWorkbook.path
+
+''ThisMonthFolder = thisfolderpath & "\" & Format(DateAdd("M", -1, Now), "MMMM")
+
+ThisMonthFolder = thisfolderpath & "\" & ThisWorkbook.Sheets("Main").Range("U2")
+
+Application.ScreenUpdating = False
+
+ActiveWindow.WindowState = xlMaximized
+
+Application.ScreenUpdating = True
+
+
+If Dir(ThisMonthFolder) = "" Then
+    CreateFolder (ThisMonthFolder)
+    
+End If
+
+If Range("C22").Value = "Bags Only" Then
+
+BagsFolder = ThisMonthFolder & "\Bags Only\"
+
+If Dir(BagsFolder) = "" Then
+    CreateFolder (BagsFolder)
+End If
+
+Else
+
+End If
+
+
+
+If Range("C22").Value = "Bulk Only" Then
+
+BulkFolder = ThisMonthFolder & "\Bulk Only\"
+
+If Dir(BulkFolder) = "" Then
+    CreateFolder (BulkFolder)
+End If
+
+Else
+End If
+
+
+
+
+If Range("C22").Value = "Bags and Bulk" Then
+
+
+BagsFolder = ThisMonthFolder & "\Bags Only\"
+
+If Dir(BagsFolder) = "" Then
+    CreateFolder (BagsFolder)
+End If
+
+
+BulkFolder = ThisMonthFolder & "\Bulk Only\"
+
+If Dir(BulkFolder) = "" Then
+    CreateFolder (BulkFolder)
+End If
+
+Else
+End If
+
+
+
+
+
+Call copydata
+
+
+
+
+
+
+If Range("C22").Value = "Bags Only" Then
+
+Call BagCollection(BagsFolder)
+
+Else
+End If
+
+If Range("C22").Value = "Bulk Only" Then
+
+Call Bulkcollection(BulkFolder)
+
+Else
+End If
+
+
+If Range("C22").Value = "Bags and Bulk" Then
+
+Call BagCollection(BagsFolder)
+Call Bulkcollection(BulkFolder)
+
+Else
+End If
+
+
+End Sub
+
+
+
+Sub cheats(path)
+
+
+ Sheets("Main").Select
+    Range("D5").Select
+    ActiveCell.FormulaR1C1 = "=COUNTA(RawData!C[-1])"
+    Range("D6:E6").Select
+    ActiveCell.Formula = "=TEXT($U$2,""MMMM YYYY"")"
+    
+    Range("D7:E7").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(R5C3,RawData!C1:C6,4,0)"
+    Range("D8:E8").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(R5C3,RawData!C1:C7,5,0)"
+    Range("D9:E9").Select
+    ActiveCell.FormulaR1C1 = _
+        "=TEXT(DAY(NOW()),""dd"")&IF(DAY(NOW())=31,""st"",IF(DAY(NOW())=30,""th"",CHOOSE(DAY(NOW()),""st"",""nd"",""rd"",""th"",""th"",""th"","" th"",""th"",""th"",""th"",""th"",""th"",""th"",""th"",""th"",""th"",""th"",""th"",""th"",""th"",""st"",""n d"",""rd"",""th"",""th"",""th"",""th"",""th"",""th"")))&TEXT(TODAY(),"" mmmm yyyy"")"
+    Range("D10:E10").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(R5C3,RawData!C1:C9,7,0)"
+    Range("D11:E11").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(R5C3,RawData!C1:C8,6,0)"
+    Range("D12:E12").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(R5C3,RawData!C1:C8,2,0)"
+    Range("D13:E13").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(R5C3,RawData!C1:C8,3,0)"
+    Range("D14:E14").Select
+    ActiveCell.FormulaR1C1 = _
+        "=SUBSTITUTE(SUBSTITUTE('Template-Bag1'!R31C8,""MUR"",""""),"" "","""")"
+    Range("D15").Select
+    
+    
+       Range("H6:I6").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(R5C3,RawData!C1:C10,8,0)"
+    Range("H7:I7").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(R5C3,RawData!C1:C11,9,0)"
+   
+   
+   
+      Range("H8:I8").Select
+            
+        ActiveCell.FormulaR1C1 = "=IFERROR(VLOOKUP(R5C3,RawData!C1:C12,10,0),"""")"
+            Range("H9:I9").Select
+        ActiveCell.FormulaR1C1 = _
+         "=IFERROR(IF(R16C4=""Bags_"",VLOOKUP(R5C3,RawData!C[-7]:C[3],11,0),""""),"""")"
+            
+        Range("H10:I10").Select
+           
+         ActiveCell.FormulaR1C1 = _
+        "=IFERROR(IF(R16C4=""Bags_"",VLOOKUP(Main!R5C3,RawData!C[-7]:C[4],12,0),IF(R16C4=""Bulk_"",VLOOKUP(Main!R5C3,RawData!C[-7]:C[3],11,0),"""")),"""")"
+            Range("H11:I11").Select
+           
+         ActiveCell.FormulaR1C1 = _
+         "=IFERROR(IF(R16C4=""Bags_"",VLOOKUP(Main!R5C3,RawData!C[-7]:C[5],13,0),""""),"""")"
+           
+         Range("H12:I12").Select
+   
+   
+   
+   
+   
+   
+    Range("H12:I12").Select
+    ActiveCell.FormulaR1C1 = _
+        "=IF(R16C4=""Bags_"",VLOOKUP(R5C3,RawData!C[-7]:C[6],14,0),IF(R16C4=""Bulk_"",VLOOKUP(Main!R5C3,RawData!C[-7]:C[4],12,0)))"
+    Range("H13").Select
+  
+  
+    Range("D18:F18").Select
+    ActiveCell.FormulaR1C1 = path
+    
+
+
+        
+    Range("D19").Select
+
+End Sub
+
+
+
+
+
+
+Sub CreateFolder(createFolder1)
+
+ Dim fdObj As Object
+ Dim slash As String
+ slash = "\"
+ 
+ pathWorkbook = ThisWorkbook.path
+
+
+If Dir(createFolder1) <> "" Then
+    Exit Sub
+    
+End If
+
+
+ Set fdObj = CreateObject("Scripting.FileSystemObject")
+
+    If Not fdObj.FolderExists(createFolder1) Then
+        fdObj.CreateFolder (createFolder1)
+    End If
+
+End Sub
+
+
+
+Sub copydata()
+
+Dim wb As Workbook
+Dim myPath As String
+Dim wkbSource As Workbook
+Set wkbDest = ThisWorkbook
+Dim Lastrow As Long
+Dim lastcolumn As Long
+Dim Count As Integer
+
+'Filepath for execucation
+
+myPath = ThisWorkbook.Sheets("Main").Range("D20").Value
+myPathFilename = ThisWorkbook.Sheets("Main").Range("E20").Value
+
+Workbooks.Open Filename:=myPath
+ActiveSheet.Select
+
+
+Application.ScreenUpdating = False
+
+ActiveWindow.WindowState = xlMinimized
+Application.ScreenUpdating = True
+
+
+''Windows(myPath).Activate
+
+
+''Remove previous data
+
+Windows("CreditNotePDf.xlsm").Activate
+Sheets("Bagscollection").Select
+Cells.Select
+Selection.ClearContents
+
+Sheets("Bulkcollection").Select
+Cells.Select
+Selection.ClearContents
+Application.WindowState = xlNormal
+
+
+''pasting records from created file
+'windows("test.xlsx").activate
+Windows(myPathFilename).Activate
+Sheets("Bagscollection").Select
+Cells.Select
+Selection.Copy
+
+ThisWorkbook.Activate
+Sheets("Bagscollection").Select
+ActiveSheet.Paste
+
+''Formula to change doc no
+
+Lastrow = Range("B" & Rows.Count).End(xlUp).Row
+Range("B2").Select
+ActiveCell.FormulaR1C1 = _
+    "=TEXT(DATEVALUE(Main!R2C21),""yyyymm"")&""_""&TEXT(ROW(RC)-1,""000"")"
+    
+Range("B2").AutoFill Destination:=Range("B2:B" & Lastrow), Type:=xlFillSeries
+
+Windows(myPathFilename).Activate
+Sheets("Bulkcollection").Select
+Cells.Select
+Selection.Copy
+''Application.CutCopyMode = False
+
+ThisWorkbook.Activate
+Sheets("Bulkcollection").Select
+ActiveSheet.Paste
+
+''Formula to change doc no
+
+Lastrow = Range("B" & Rows.Count).End(xlUp).Row
+
+Range("B2").Select
+ActiveCell.FormulaR1C1 = _
+    "=TEXT(DATEVALUE(Main!R2C21),""yyyymm"")&""_""&TEXT((COUNTA(Bagscollection!C)-1) + ROW(RC)-1,""000"")"
+Range("B2").AutoFill Destination:=Range("B2:B" & Lastrow), Type:=xlFillSeries
+    
+    
+    
+Sheets("Main").Select
+
+Application.CutCopyMode = False
+Windows(myPathFilename).Close True
+
+Application.CutCopyMode = True
+
+
+End Sub
+
+
+Sub Macro1()
+'
+' Macro1 Macro
+'
+
+'
+    Range("D14:E14").Select
+    ActiveCell.FormulaR1C1 = _
+        "=SUBSTITUTE(SUBSTITUTE('Template-Bag1'!R31C8,""MUR"",""""),"" "","""")"
+    Range("D15").Select
+End Sub
+Sub Macro2()
+'
+' Macro2 Macro
+'
+
+'
+    Range("H7:I7").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(R5C3,RawData!C1:C11,9,0)"
+    Range("H8:I8").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(R5C3,RawData!C1:C12,10,0)"
+    Range("H9:I9").Select
+    ActiveCell.FormulaR1C1 = _
+        "=IFERROR(IF(R16C4=""Bags_"",VLOOKUP(R5C3,RawData!C1:C11,11,0),""""),"""")"
+    Range("H10:I10").Select
+    ActiveCell.FormulaR1C1 = _
+        "=IFERROR(IF(R16C4=""Bags_"",VLOOKUP(Main!R5C3,RawData!C1:C12,12,0),IF(R16C4=""Bulk_"",VLOOKUP(Main!R5C3,RawData!C1:C11,11,0),"""")),"""")"
+    Range("H11:I11").Select
+    ActiveCell.FormulaR1C1 = _
+        "=IFERROR(IF(R16C4=""Bags_"",VLOOKUP(Main!R5C3,RawData!C1:C13,13,0),""""),"""")"
+    Range("H12:I12").Select
+    ActiveCell.FormulaR1C1 = _
+        "=IF(R16C4=""Bags_"",VLOOKUP(R5C3,RawData!C1:C14,14,0),IF(R16C4=""Bulk_"",VLOOKUP(Main!R5C3,RawData!C1:C12,12,0)))"
+    Range("H13").Select
+End Sub
+Sub Macro3()
+'
+' Macro3 Macro
+'
+
+'
+
+End Sub
+
+
+Sub test()
+
+Call updatesheetData("C:\Users\bot\Desktop\Lafarge\INCENTIVES REPORT\October\FIlesCollection\CollectionDataBags_October 2020.xlsx")
+
+End Sub
+
+
+Sub updatesheetData(myPath As String)
+
+
+    Dim wsBulkcollection As Worksheet
+    Dim wsBagscollection As Worksheet
+    
+    Dim wbFIlesCollection As Workbook
+    
+    Dim wswbBulkcollection As Worksheet
+    Dim wswbBagscollection As Worksheet
+    
+    
+    
+    Set wsBulkcollection = ThisWorkbook.Worksheets("Bulkcollection")
+    Set wsBagscollection = ThisWorkbook.Worksheets("Bagscollection")
+    
+    
+    myPath = Replace(myPath, "\\", "\")
+    Set wbFIlesCollection = Workbooks.Open(Filename:=myPath)
+    Set wswbBulkcollection = wbFIlesCollection.Worksheets("Bulkcollection")
+    Set wswbBagscollection = wbFIlesCollection.Worksheets("Bagscollection")
+    
+    
+    
+    
+    Call clear_sheets(wbFIlesCollection, "Bulkcollection")
+    Call clear_sheets(wbFIlesCollection, "Bagscollection")
+    
+    ThisWorkbook.Activate
+    wsBulkcollection.Range("A1:Z1").Copy
+    wbFIlesCollection.Activate
+    wswbBulkcollection.Range("A1:N1").PasteSpecial Paste:=xlPasteValues
+    wswbBulkcollection.Range("A1:N1").PasteSpecial Paste:=xlPasteFormats
+    Application.CutCopyMode = False
+    wswbBulkcollection.Range("N1").Value = "Status"
+    
+    
+    ThisWorkbook.Activate
+    wsBagscollection.Range("A1:Z1").Copy
+    wbFIlesCollection.Activate
+    wswbBagscollection.Range("A1:N1").PasteSpecial Paste:=xlPasteValues
+    wswbBagscollection.Range("A1:N1").PasteSpecial Paste:=xlPasteFormats
+    Application.CutCopyMode = False
+    wswbBagscollection.Range("P1").Value = "Status"
+    
+    ThisWorkbook.Activate
+    wsBulkcollection.Select
+    lrow = (Application.WorksheetFunction.CountA(wsBulkcollection.Range("A:A")))
+    wsBulkcollection.Range("A2:Z" & lrow).Copy Destination:=wswbBulkcollection.Range("A2")
+    
+    wsBagscollection.Select
+    lrow = (Application.WorksheetFunction.CountA(wsBagscollection.Range("A:A")))
+    wsBagscollection.Range("A2:Z" & lrow).Copy Destination:=wswbBagscollection.Range("A2")
+    
+End Sub
+
+
+
+
+
+Sub clear_sheets(wbWorkbook As Workbook, wsWorksheet As String)
+    Dim wks As Worksheet
+    
+    Set wks = wbWorkbook.Worksheets(wsWorksheet)
+    wks.Activate
+    wks.Select
+    On Error Resume Next
+    If wks.AutoFilterMode = True Then
+        wks.Cells.AutoFilter
+    End If
+    
+    With wks
+        .Cells.Clear
+        .Range("A1").Select
+
+    End With
+End Sub
+
+
+
