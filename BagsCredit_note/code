@@ -1,0 +1,668 @@
+Sub Creditnote()
+
+Dim wb As Workbook
+Dim myPath As String
+Dim myFile As String
+Dim wkbSource As Workbook
+Set wkbDest = ThisWorkbook
+Dim Lastrow As Long
+Dim PivotRange As Range
+Dim lastcolumn As Long
+Dim Count As Integer
+Dim myPath5 As String
+Dim myPath2 As String
+Dim myPath3 As String
+Dim myPath6 As String
+
+
+
+'Filepath for execucation
+''-------------------------
+
+myPath = ThisWorkbook.Sheets("Sheet1").Range("C3").Value
+myPath2 = ThisWorkbook.Sheets("Sheet1").Range("C4").Value
+
+
+myPath3 = ThisWorkbook.Sheets("Sheet1").Range("C5").Value
+myPath4 = ThisWorkbook.Sheets("Sheet1").Range("C6").Value
+
+
+myPathFilename = ThisWorkbook.Sheets("Sheet1").Range("D3").Value
+''myPath2Filename = ThisWorkbook.Sheets("Sheet1").Range("D4").Value
+
+myPath5 = ThisWorkbook.Sheets("Sheet1").Range("D6").Value
+
+
+
+Call CreateFolder(myPath3)
+
+strFile = myPath4
+'    Debug.Print strFile
+
+
+If Dir(strFile) = "" Then
+    'File Exists
+'        Debug.Print "file Exist : " & strFileName
+
+Dim oFSO As Object
+ 
+Set oFSO = CreateObject("Scripting.FileSystemObject")
+ 
+Call oFSO.CopyFile(myPath2, myPath3, True)
+
+Name ThisWorkbook.Sheets("Sheet1").Range("D5").Value As myPath4
+
+
+Else
+
+   '' MsgBox "found"
+'        Debug.Print "File does not Exist : " & strFileName
+End If
+
+
+'Exit Sub
+
+    
+Workbooks.Open Filename:=myPath
+ActiveSheet.Select
+
+Workbooks.Open Filename:=myPath4
+ActiveSheet.Select
+
+Application.AskToUpdateLinks = False
+Application.DisplayAlerts = False
+
+Windows(myPath5).Activate
+
+
+Windows(myPathFilename).Activate
+
+
+'COPY & MOVE Base sheet towards incentiveexcel sheet
+''--------------------------------------------------
+
+
+Sheets("Base").Select
+
+
+''Sheets("Base").Copy Before:=Workbooks("CollectionDataBags_" & Format(DateAdd("M", -1, Now), "MMMMYYYY") & ".xlsx").Sheets(1)
+''MsgBox "CollectionDataBags_" & ThisWorkbook.Sheets("Sheet1").Range("D9") & Format(Now(), "YYYY") & ".xlsx"
+
+Sheets("Base").Copy Before:=Workbooks("CollectionDataBags_" & ThisWorkbook.Sheets("Sheet1").Range("D9") & Format(Now(), " YYYY") & ".xlsx").Sheets(1)
+
+''Sheets.Add After:=ActiveSheet
+Sheets.Add
+ActiveSheet.Name = "Bagscollection"
+    
+
+''Sheets("Sheet2").Name = "Bagscollection"
+
+
+'Autofilter remove "0" & "-"
+''-------------------------
+
+
+Sheets("AA 2").Select
+'Remove autofilter
+If ActiveSheet.AutoFilterMode = True Then ActiveSheet.AutoFilterMode = False
+
+Rows("18:18").Select
+Selection.AutoFilter
+ActiveWindow.SmallScroll ToRight:=24
+ActiveSheet.Range("$18:$500").AutoFilter Field:=30, Criteria1:=">0", Operator:=xlAnd, Criteria2:="<>-"
+
+
+Range("A19").Select
+Range(Selection, Selection.End(xlDown)).Select
+Selection.Copy
+
+Sheets("Bagscollection").Select
+
+
+Range("A2").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+
+Range("A1").Select
+Application.CutCopyMode = False
+ActiveCell.FormulaR1C1 = "Customer"
+
+'Copy and paste those required rows to be filled
+''-----------------------------------------------
+
+
+Sheets("Base").Select
+Range("Y1:AC1").Select
+Application.CutCopyMode = False
+Selection.Copy
+Sheets("Bagscollection").Select
+Range("B1").Select
+ActiveSheet.Paste
+
+
+
+'Calculation for Fullname
+''------------------------
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+Range("B2").Select
+ActiveCell.FormulaR1C1 = _
+    "=INDEX(Base!C[23],MATCH(Bagscollection!RC1,Base!C6,0))"
+Range("B2").AutoFill Destination:=Range("B2:B" & Lastrow)
+
+
+'Calculation for FullAddress
+''--------------------------
+Range("C2").Select
+ActiveCell.FormulaR1C1 = _
+    "=IF(TRIM(INDEX(Base!C[23],MATCH(Bagscollection!RC1,Base!C6,0)))<>"""",INDEX(Base!C[23],MATCH(Bagscollection!RC1,Base!C6,0)),"""")&IF(AND(TRIM(INDEX(Base!C[23],MATCH(Bagscollection!RC1,Base!C6,0)))<>"""",TRIM(INDEX(Base!C[24],MATCH(Bagscollection!RC1,Base!C6,0)))<>""""),"", "","""")& INDEX(Base!C[24],MATCH(Bagscollection!RC1,Base!C6,0))"
+
+Range("C2").AutoFill Destination:=Range("C2:C" & Lastrow)
+
+'Calculation for VAT No
+''----------------------
+Range("E2").Select
+ActiveCell.FormulaR1C1 = _
+    "=INDEX(Base!C[23],MATCH(Bagscollection!RC1,Base!C6,0))"
+Range("E2").AutoFill Destination:=Range("E2:E" & Lastrow)
+
+'Calculation for BRN No
+''----------------------
+Range("F2").Select
+ActiveCell.FormulaR1C1 = _
+    "=INDEX(Base!C[23],MATCH(Bagscollection!RC1,Base!C6,0))"
+Range("F2").AutoFill Destination:=Range("F2:F" & Lastrow)
+
+Columns("D:D").Select
+Selection.Delete Shift:=xlToLeft
+
+
+'Create DocNo
+''----------------------
+
+Sheets("Bagscollection").Select
+Columns("B:B").Select
+Selection.Insert Shift:=xlToRight
+
+Range("B1").Select
+ActiveCell.FormulaR1C1 = "DOCNO"
+
+Range("B2").Select
+ActiveCell.FormulaR1C1 = Format(Now(), "yyyymm_001")
+Range("B2").AutoFill Destination:=Range("B2:B" & Lastrow)
+
+
+''COpy QYT bags & Paste
+''----------------------
+
+Sheets("AA 2").Select
+Range("O19").Select
+Range(Selection, Selection.End(xlDown)).Select
+Selection.Copy
+
+Sheets("Bagscollection").Select
+Range("G2").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+    :=False, Transpose:=False
+    
+Range("G1").Select
+Application.CutCopyMode = False
+ActiveCell.FormulaR1C1 = "QYT bags"
+
+
+'Copy Volume,other requited fate and paste
+''---------------------------------------
+
+Sheets("AA 2").Select
+Range("Y17:AD17").Select
+Selection.Copy
+Sheets("Bagscollection").Select
+Range("H1").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+    :=False, Transpose:=False
+
+Sheets("AA 2").Select
+
+Dim LastrowColAD As Long
+
+LastrowColAD = Range("B" & Rows.Count).End(xlUp).Row
+
+Range("Y19:AD" & LastrowColAD).Select
+'Range(Selection, Selection.End(xlDown)).Select
+Application.CutCopyMode = False
+Selection.Copy
+Sheets("Bagscollection").Select
+Range("H2").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+    :=False, Transpose:=False
+
+Range("C1").Select
+Application.CutCopyMode = False
+Selection.Copy
+Rows("1:1").Select
+Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
+    SkipBlanks:=False, Transpose:=False
+Application.CutCopyMode = False
+
+
+''Account Number
+
+Range("N1").Select
+Application.CutCopyMode = False
+ActiveCell.FormulaR1C1 = "AcountCode"
+
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+Range("N2").Select
+ActiveCell.FormulaR1C1 = "709010"
+Range("N2").AutoFill Destination:=Range("N2:N" & Lastrow)
+
+
+''CN Number
+
+Range("O1").Select
+Application.CutCopyMode = False
+ActiveCell.FormulaR1C1 = "CN_NO"
+
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+Range("O2").Select
+''ActiveCell.FormulaR1C1 = "CN" & Format(Now(), "yyyymmdd")
+
+ActiveCell.FormulaR1C1 = Format(Now(), "yyyymmdd" & "001")
+Range("O2").AutoFill Destination:=Range("O2:O" & Lastrow), Type:=xlFillSeries
+
+
+Cells.Select
+Selection.Columns.AutoFit
+
+Call Bulk
+
+Call colour
+
+
+ActiveWorkbook.Save
+
+Application.DisplayAlerts = False
+ActiveWindow.Close False
+Application.DisplayAlerts = False
+
+
+ActiveWorkbook.Save
+
+Application.DisplayAlerts = False
+ActiveWindow.Close False
+Application.DisplayAlerts = False
+
+End Sub
+
+
+Sub Bulk()
+
+
+'Create new sheet & calculate Bulk
+''-------------------------
+
+''Sheets.Add After:=ActiveSheet
+''Sheets("Sheet3").Select
+''Sheets("Sheet3").Name = "Bulkcollection"
+
+Sheets.Add
+ActiveSheet.Name = "Bulkcollection"
+
+
+'Autofilter remove "0" & "-"
+''-------------------------
+
+Sheets("AA 2").Select
+Rows("18:18").Select
+Selection.AutoFilter
+Rows("18:18").Select
+Selection.AutoFilter
+Range("W18").Activate
+ActiveWindow.SmallScroll ToRight:=10
+ActiveSheet.Range("$18:$501").AutoFilter Field:=23, Criteria1:=">0", Operator:=xlAnd, Criteria2:="<>-"
+
+     
+Range("A19").Select
+Range(Selection, Selection.End(xlDown)).Select
+Selection.Copy
+
+Sheets("Bulkcollection").Select
+
+
+Range("A2").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+
+Range("A1").Select
+Application.CutCopyMode = False
+ActiveCell.FormulaR1C1 = "Customer"
+
+
+'Calculation for Fullname
+''------------------------
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+Range("B2").Select
+ActiveCell.FormulaR1C1 = _
+    "=INDEX(Base!C[23],MATCH(Bulkcollection!RC1,Base!C6,0))"
+Range("B2").AutoFill Destination:=Range("B2:B" & Lastrow)
+
+
+'Calculation for FullAddress
+''--------------------------
+Range("C2").Select
+ActiveCell.FormulaR1C1 = _
+    "=IF(TRIM(INDEX(Base!C[23],MATCH(Bulkcollection!RC1,Base!C6,0)))<>"""",INDEX(Base!C[23],MATCH(Bulkcollection!RC1,Base!C6,0)),"""")&IF(AND(TRIM(INDEX(Base!C[23],MATCH(Bulkcollection!RC1,Base!C6,0)))<>"""",TRIM(INDEX(Base!C[24],MATCH(Bulkcollection!RC1,Base!C6,0)))<>""""),"", "","""")& INDEX(Base!C[24],MATCH(Bulkcollection!RC1,Base!C6,0))"
+
+Range("C2").AutoFill Destination:=Range("C2:C" & Lastrow)
+
+'Calculation for VAT No
+''----------------------
+Range("E2").Select
+ActiveCell.FormulaR1C1 = _
+    "=INDEX(Base!C[23],MATCH(Bulkcollection!RC1,Base!C6,0))"
+Range("E2").AutoFill Destination:=Range("E2:E" & Lastrow)
+
+'Calculation for BRN No
+''----------------------
+Range("F2").Select
+ActiveCell.FormulaR1C1 = _
+    "=INDEX(Base!C[23],MATCH(Bulkcollection!RC1,Base!C6,0))"
+Range("F2").AutoFill Destination:=Range("F2:F" & Lastrow)
+
+
+Columns("D:D").Select
+Selection.Delete Shift:=xlToLeft
+
+''Sheets("Bagscollection").Select
+Columns("B:B").Select
+Selection.Insert Shift:=xlToRight
+
+Range("B1").Select
+ActiveCell.FormulaR1C1 = "DOCNO"
+
+Range("B2").Select
+ActiveCell.FormulaR1C1 = Format(Now(), "yyyymm_001")
+Range("B2").AutoFill Destination:=Range("B2:B" & Lastrow)
+
+
+
+'Copy & paste bulk data from AA2 to bulkcollection
+''---------------------------------------------------
+
+Sheets("AA 2").Select
+Range("D18").Select
+Call LoopUntilCellAppear
+Range(Selection, Selection.End(xlDown)).Select
+Selection.Copy
+
+Sheets("Bulkcollection").Select
+Range("G2").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+    :=False, Transpose:=False
+    
+Range("G1").Select
+Application.CutCopyMode = False
+ActiveCell.FormulaR1C1 = "QYT bags"
+
+Sheets("AA 2").Select
+
+Range("T17:W17").Select
+Selection.Copy
+Sheets("Bulkcollection").Select
+Range("H1").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+    :=False, Transpose:=False
+
+Sheets("AA 2").Select
+Range("T19:W19").Select
+''Range(Selection, Selection.Offset(0, 1)).Select
+Range(Selection, Selection.Offset(4, 0)).Select
+Range(Selection, Selection.End(xlDown)).Select
+Application.CutCopyMode = False
+Selection.Copy
+        
+        
+Sheets("Bulkcollection").Select
+Range("H2").Select
+
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+    :=False, Transpose:=False
+
+
+Sheets("Bagscollection").Select
+Range("A1:F1").Select
+Selection.Copy
+Sheets("Bulkcollection").Select
+Range("A1").Select
+ActiveSheet.Paste
+
+
+Sheets("Bulkcollection").Select
+Range("A1").Select
+Rows("1:1").Select
+Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
+SkipBlanks:=False, Transpose:=False
+Application.CutCopyMode = False
+
+
+
+
+Sheets("Bagscollection").Select
+Cells.Select
+Selection.Copy
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+
+Sheets("Bulkcollection").Select
+Cells.Select
+Selection.Copy
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+
+''Account Number
+
+Range("L1").Select
+Application.CutCopyMode = False
+ActiveCell.FormulaR1C1 = "AcountCode"
+
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+Range("L2").Select
+ActiveCell.FormulaR1C1 = "709009"
+Range("L2").AutoFill Destination:=Range("L2:L" & Lastrow)
+
+
+''CN Number
+
+Range("M1").Select
+Application.CutCopyMode = False
+ActiveCell.FormulaR1C1 = "CN_NO"
+
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+Range("M2").Select
+ActiveCell.FormulaR1C1 = Format(Now(), "yyyymmdd" & "001")
+Range("M2").AutoFill Destination:=Range("M2:M" & Lastrow), Type:=xlFillSeries
+
+
+Cells.Select
+Selection.Columns.AutoFit
+
+End Sub
+
+Sub LoopUntilCellAppear()
+ActiveCell.Offset(1, 0).Activate
+Do Until Selection.EntireRow.Hidden = False
+If Selection.EntireRow.Hidden = True Then
+ActiveCell.Offset(1, 0).Activate
+End If
+Loop
+
+End Sub
+Sub colour()
+
+
+Sheets("Bulkcollection").Select
+Range("T3").Select
+Selection.Copy
+Rows("1:1").Select
+Range("C1").Activate
+Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
+    SkipBlanks:=False, Transpose:=False
+Application.CutCopyMode = False
+
+Range("A1:L1").Select
+With Selection.Interior
+      .Pattern = xlSolid
+      .PatternColorIndex = xlAutomatic
+      .Color = 65535
+      .TintAndShade = 0
+      .PatternTintAndShade = 0
+End With
+
+
+Sheets("Bagscollection").Select
+Range("T3").Select
+Selection.Copy
+Rows("1:1").Select
+Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
+    SkipBlanks:=False, Transpose:=False
+Application.CutCopyMode = False
+
+Range("A1:O1").Select
+With Selection.Interior
+      .Pattern = xlSolid
+      .PatternColorIndex = xlAutomatic
+      .Color = 65535
+      .TintAndShade = 0
+      .PatternTintAndShade = 0
+  End With
+  
+      Selection.Borders(xlDiagonalDown).LineStyle = xlNone
+    Selection.Borders(xlDiagonalUp).LineStyle = xlNone
+    With Selection.Borders(xlEdgeLeft)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+
+
+End Sub
+
+Sub CreateFolder(createFolder1)
+
+ Dim fdObj As Object
+ Dim slash As String
+ slash = "\"
+ 
+ pathWorkbook = ThisWorkbook.Path
+
+
+If Dir(createFolder1) <> "" Then
+    Exit Sub
+    
+End If
+
+
+ Set fdObj = CreateObject("Scripting.FileSystemObject")
+
+    If Not fdObj.FolderExists(createFolder1) Then
+        fdObj.CreateFolder (createFolder1)
+    End If
+
+End Sub
+
+
+ Sub CopyFileWithFSO(SourceFilePath As String, DestPath As String, OverWrite As Boolean)
+' (1) copies one file from one folder to another folder with the VBA FileSystemObject
+' (2) contains extensive error handling (safeguards)
+' (3) requires a reference to the object library "Microsoft Scripting Runtime" under Options > Tools > References...
+' in the Visual Basic Editor.
+
+    Dim blFileExists As Boolean, blSourceErr As Boolean
+    Dim strFileName As String, strSuccessMsg As String, strNewDestPath As String, strNewSourcePath As String
+    ''Dim fso As Scripting.FileSystemObject
+    Dim strErrMsg As String
+    
+    Set fso = New Scripting.FileSystemObject
+    
+    With fso
+        
+        strNewDestPath = .BuildPath(.GetAbsolutePathName(DestPath), "\")
+        strFileName = .GetFileName(SourceFilePath)
+    
+        'check if the source file exists
+        If Not .FileExists(SourceFilePath) Then
+            
+            ' check if the root drive was specified
+            If .DriveExists(Left(SourceFilePath, 2)) Then
+                blSourceErr = True
+            
+            ' the provided source path is incomplete
+            ' build new path and ask the user if he accepts the suggestion
+            Else
+                strNewSourcePath = .BuildPath(.GetAbsolutePathName(SourceFilePath), "")
+                If Not MsgBox("The source path " & Chr(34) & SourceFilePath & Chr(34) & _
+                    " is incomplete. Will you accept the following suggestion: " _
+                    & Chr(34) & strNewSourcePath & Chr(34) & "?", vbYesNo, "Confirm new source path") = vbYes Then _
+                        blSourceErr = True
+            End If
+            
+            ' error
+            If blSourceErr Then _
+                strErrMsg = "The source file," & Chr(34) & strFileName & Chr(34) & _
+                        " does not exist, or the specified path to the file, " & Chr(34) & _
+                        Replace(SourceFilePath, strFileName, "") & Chr(34) & " is incorrect."
+        
+        ' check if the destination folder already exists
+        ElseIf Not .FolderExists(strNewDestPath) Then
+        
+            ' prompt the user if the destination folder should be created
+            If MsgBox("The destination folder, " & Chr(34) & strNewDestPath & Chr(34) & ", does not exist. Do you want to create it?", vbYesNo, _
+                "Create new folder?") = vbYes Then
+                .CreateFolder (strNewDestPath)
+            Else
+                strErrMsg = "The destination folder could not be created."
+            End If
+        
+        ' check if the file already exists in the destination folder
+        Else
+            blFileExists = .FileExists(strNewDestPath & strFileName)
+            If Not OverWrite Then
+                If blFileExists Then _
+                    strErrMsg = "The file, " & Chr(34) & strFileName & Chr(34) & _
+                        ", already exists in the destination folder, " & Chr(34) & _
+                        strNewDestPath & Chr(34) & "."
+            End If
+        End If
+        
+        ' attempt to copy file
+        If strErrMsg = vbNullString Then
+            On Error Resume Next
+            If strNewSourcePath = vbNullString Then strNewSourcePath = SourceFilePath
+            Call .CopyFile(strNewSourcePath, strNewDestPath, OverWrite)
+            If Err.Number <> 0 Then strErrMsg = "Run-time error " & Err.Number & Chr(10) & Err.Description
+            On Error GoTo 0
+        End If
+        
+        ' succesful copy
+        If strErrMsg = vbNullString Then
+            strSuccessMsg = "The file" & Chr(34) & strFileName & Chr(34) & " was copied to " & _
+                Chr(34) & strNewDestPath & Chr(34) & "."
+            If blFileExists Then strSuccessMsg = strSuccessMsg & Chr(10) & _
+                "(Note, the existing file in the destination folder was overwritten)."
+            'MsgBox strSuccessMsg, vbInformation, "File copied"
+        
+        ' error
+        Else
+            MsgBox strErrMsg, vbCritical, "Error!"
+        End If
+        
+    End With
+
+End Sub
+
+
+
+
+
+
+
