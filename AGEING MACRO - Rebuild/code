@@ -1,0 +1,734 @@
+
+Sub Ageingreport()
+
+Dim wb As Workbook
+Dim myPath As String
+Dim myFile As String
+Dim wkbSource As Workbook
+Set wkbDest = ThisWorkbook
+Dim Lastrow As Long
+Dim PivotRange As Range
+Dim lastcolumn As Long
+Dim myPath2 As String
+Dim myPath3 As String
+Dim myPath6 As String
+
+
+
+'Filepath for execucation
+
+
+myPath2 = ThisWorkbook.Sheets("Sheet1").Range("C3").Value
+
+myPath5 = ThisWorkbook.Sheets("Sheet1").Range("D6").Value
+
+myPath3 = ThisWorkbook.Sheets("Sheet1").Range("C5").Value
+myPath4 = ThisWorkbook.Sheets("Sheet1").Range("C6").Value
+
+
+myPathFilename = ThisWorkbook.Sheets("Sheet1").Range("D3").Value
+myPath2Filename = ThisWorkbook.Sheets("Sheet1").Range("D4").Value
+
+
+
+
+
+Call CreateFolder(myPath3)
+
+strFile = myPath4
+'    Debug.Print strFile
+
+
+If Dir(strFile) = "" Then
+    'File Exists
+'        Debug.Print "file Exist : " & strFileName
+
+Dim oFSO As Object
+ 
+Set oFSO = CreateObject("Scripting.FileSystemObject")
+ 
+Call oFSO.CopyFile(myPath2, myPath3, True)
+
+Name ThisWorkbook.Sheets("Sheet1").Range("D5").Value As myPath4
+
+''Name myPath2 As myPath4
+
+
+Else
+
+    ''MsgBox "found"
+'        Debug.Print "File does not Exist : " & strFileName
+End If
+
+
+'Exit Sub
+
+
+Workbooks.Open Filename:=myPath4
+ActiveSheet.Select
+
+Application.AskToUpdateLinks = False
+Application.DisplayAlerts = False
+
+''Adding new sheet for Ageing report and import txt file
+''---------------------------------------------------------
+
+Sheets.Add
+Range("A1").Select
+Application.CutCopyMode = False
+With ActiveSheet.QueryTables.Add(Connection:= _
+"TEXT;" & ThisWorkbook.Sheets("Sheet1").Range("C4").Value, Destination:=Range("$A$1"))
+.Name = ThisWorkbook.Sheets("Sheet1").Range("E4").Value
+''.CommandType = 0
+.FieldNames = True
+.RowNumbers = False
+.FillAdjacentFormulas = False
+.PreserveFormatting = True
+.RefreshOnFileOpen = False
+.RefreshStyle = xlInsertDeleteCells
+.SavePassword = False
+.SaveData = True
+.AdjustColumnWidth = True
+.RefreshPeriod = 0
+.TextFilePromptOnRefresh = False
+.TextFilePlatform = 850
+.TextFileStartRow = 1
+.TextFileParseType = xlDelimited
+.TextFileTextQualifier = xlTextQualifierDoubleQuote
+.TextFileConsecutiveDelimiter = False
+.TextFileTabDelimiter = True
+.TextFileSemicolonDelimiter = False
+.TextFileCommaDelimiter = False
+.TextFileSpaceDelimiter = False
+.TextFileOtherDelimiter = "|"
+.TextFileColumnDataTypes = Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, _
+1, 1, 1)
+.TextFileTrailingMinusNumbers = True
+.Refresh BackgroundQuery:=False
+End With
+
+'' Insert Pivot
+''-----------------
+
+
+Call Cleaning
+
+
+
+
+Columns("A:A").Select
+Selection.Delete Shift:=xlToLeft
+
+Sheets.Add
+ActiveSheet.Name = "Ageing"
+Range("A1").Select
+ActiveWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+"Workings!R1C1:R1048576C22", Version:=6).CreatePivotTable TableDestination _
+:="Ageing!R1C1", TableName:="PivotTable1", DefaultVersion:=6
+
+'' Selct required file into pivort
+''---------------------------------
+
+Sheets("Ageing").Select
+
+Cells(3, 1).Select
+ActiveWorkbook.ShowPivotTableFieldList = True
+With ActiveSheet.PivotTables("PivotTable1").PivotFields("Code_cli")
+.Orientation = xlRowField
+.Position = 1
+End With
+With ActiveSheet.PivotTables("PivotTable1").PivotFields("Nom_client        ")
+.Orientation = xlRowField
+.Position = 2
+End With
+
+ActiveSheet.PivotTables("PivotTable1").AddDataField ActiveSheet.PivotTables( _
+"PivotTable1").PivotFields(" Non_echu    "), "Sum of  Non_echu    ", xlSum
+
+ActiveSheet.PivotTables("PivotTable1").AddDataField ActiveSheet.PivotTables( _
+"PivotTable1").PivotFields("Avr&Rglt NAf "), "Sum of Avr&Rglt NAf ", xlSum
+
+ActiveSheet.PivotTables("PivotTable1").AddDataField ActiveSheet.PivotTables( _
+"PivotTable1").PivotFields("-121"), "Sum of -121", xlSum
+
+ActiveSheet.PivotTables("PivotTable1").AddDataField ActiveSheet.PivotTables( _
+"PivotTable1").PivotFields(" -121et -091"), "Sum of  -121et -091", xlSum
+
+ActiveSheet.PivotTables("PivotTable1").AddDataField ActiveSheet.PivotTables( _
+"PivotTable1").PivotFields(" -091et -061"), "Sum of  -091et -061", xlSum
+
+ActiveSheet.PivotTables("PivotTable1").AddDataField ActiveSheet.PivotTables( _
+"PivotTable1").PivotFields(" -061et -031"), "Sum of  -061et -031", xlSum
+
+ActiveSheet.PivotTables("PivotTable1").AddDataField ActiveSheet.PivotTables( _
+"PivotTable1").PivotFields(" -031et     "), "Sum of  -031et     ", xlSum
+
+Application.GenerateGetPivotData = False
+Application.GenerateGetPivotData = True
+With ActiveSheet.PivotTables("PivotTable1")
+.InGridDropZones = True
+.RowAxisLayout xlTabularRow
+
+End With
+Range("A4").Select
+ActiveSheet.PivotTables("PivotTable1").PivotFields("Code_cli").Subtotals = _
+Array(False, False, False, False, False, False, False, False, False, False, False, False)
+
+'' Rename Sheet into month and year
+''----------------------------------
+
+''ActiveSheet.Name = "Ageing Balance " & Format(Now(), "25 MM YYYY")
+''ActiveSheet.Name = "Ageing Balance " & Format(DateAdd("m", -1, Now()), "25 mm yyyy")
+ActiveSheet.Name = "Ageing Balance 25 " & Format(ThisWorkbook.Sheets("Sheet1").Range("D9"), "MM") & Format(Now(), "YYYY")
+
+'' Change file into number
+''--------------------------
+
+Cells.Select
+Selection.copy
+Range("A1").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+
+Rows("1:1").Select
+Application.CutCopyMode = False
+Selection.Delete Shift:=xlUp
+
+'' Calculation of total overdue balance
+''-------------------------------------
+
+Columns("C:C").Select
+Selection.Insert Shift:=xlToRight
+Range("C1").Select
+ActiveCell.Formula = "TOTAL OVERDUES BALANCE"
+Range("C2").Select
+''ActiveCell.FormulaR1C1 = "=SUM(RC[1]:RC[7])"
+Range("C2").Select
+
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+Range("C2").Select
+''ActiveCell.FormulaR1C1 = "=SUM(RC[1]:RC[7])"
+ActiveCell.Formula = "=SUM(E2:J2)"
+Call LoopUntilCellAppear
+Range("C2").Select
+Range("C2").AutoFill Destination:=Range("C2:C" & Lastrow)
+ 
+
+Sheets("Data").Delete
+    
+Call XXX
+
+Worksheets("Workings").Name = "AgeingExtraction"
+
+''ActiveWindow.Close
+
+
+'Call Protection_Sheet
+
+
+
+ActiveWorkbook.Save
+
+Application.DisplayAlerts = False
+ActiveWindow.Close False
+Application.DisplayAlerts = False
+
+
+
+
+End Sub
+
+
+
+Sub XXX()
+
+Dim Lastrowbefore As Long
+
+Lastrowbefore = Range("C" & Rows.Count).End(xlUp).Row
+Columns("A:A").Select
+Selection.Insert Shift:=xlToRight
+Range("B1").Select
+Selection.copy
+Range("A1").Select
+ActiveSheet.Paste
+Range("A2").Select
+Application.CutCopyMode = False
+Application.CutCopyMode = False
+ActiveCell.FormulaR1C1 = "=TRIM(RC[1])"
+Range("A2").Select
+Selection.AutoFill Destination:=Range("A2:A" & Lastrowbefore)
+
+''Hide the temp coloumn
+''----------------------
+
+Columns("B:B").Select
+Selection.EntireColumn.Hidden = True
+
+''Concatenate "C" with customerID
+''----------------------------------------------
+
+Sheets("AA 2").Select
+
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+Lastrow = Lastrow - 10
+Range("AI18").Select
+ActiveCell.Formula = "Concatenate"
+Range("AI19").Select
+ActiveCell.FormulaR1C1 = "=""C""& RC[-34]"
+Range("AI19").AutoFill Destination:=Range("AI19:AI" & Lastrow)
+
+
+
+ Range("AL18").Select
+
+ ActiveCell.FormulaR1C1 = "Concatenate"
+ Range("AL19").Select
+ ActiveCell.FormulaR1C1 = "=IF(RC[-4]<>"""",""C""&RC[-37],"""")"
+ Range("AL19").AutoFill Destination:=Range("AL19:AL" & Lastrow)
+ Range("AL18").Select
+ Range(Selection, Selection.End(xlDown)).Select
+ Selection.copy
+
+ Range("AI18").Select
+ Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+     :=False, Transpose:=False
+ Columns("AL:AL").Select
+
+ Application.CutCopyMode = False
+ Selection.ClearContents
+
+
+
+
+
+''MApping with Ageing balance
+''-----------------------------
+
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+
+Range("AJ18").Select
+ActiveCell.Formula = "Total Ageing balance"
+Range("AJ19").Select
+
+
+''monthDate = Format(DateAdd("m", -1, Now()), "25 mm yyyy")
+monthDate = Format(ThisWorkbook.Sheets("Sheet1").Range("D9"), "MM") & Format(Now(), "YYYY")
+        
+ ''   ActiveCell.FormulaR1C1 = _
+  ''      "=IFERROR(IF(RC[-1]<>"""",VLOOKUP(TRIM(RC[-1]),'Ageing Balance 25 " & monthDate & "'!R[-17]C[-35]:R[-17]C[-31],5,TRUE),""""),0)"
+        
+    ''ActiveCell.FormulaR1C1 = _
+       '' "=IFERROR(IF(RC[-1]<>"""",VLOOKUP(TRIM(RC[-1]),'Ageing Balance 25 " & monthDate & "'!C[-35]:C[-31],5,0),""""),""-"")"
+                    
+                    
+        ActiveCell.FormulaR1C1 = _
+        "=IFERROR(IF(RC[-1]<>"""",VLOOKUP(TRIM(RC[-1]),'Ageing Balance 25 " & monthDate & "'!C[-35]:C[-31],4,0),""""),""-"")"
+        
+
+Range("AJ19").AutoFill Destination:=Range("AJ19:AJ" & Lastrow)
+
+
+
+''Calculating if overdue/NoOverdue
+''----------------------------------------------
+
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+
+Range("AK18").Select
+ActiveCell.Formula = "OverDue/NoOverdue"
+Range("AK19").Select
+
+  ''  ActiveCell.FormulaR1C1 = _
+  ''      "=IF(RC[-2]="""","""",IF(RC[-1]>1200,""Overdue"",""No Overdue""))"
+
+    ActiveCell.FormulaR1C1 = _
+        "=IF(OR(RC[-1]="""",RC[-1]=""-""),"""",IF(RC[-1]>1200,""Overdue"",""No Overdue""))"
+
+
+Range("AK19").AutoFill Destination:=Range("AK19:AK" & Lastrow)
+
+
+''Calculating Bulk if overdue "0"/If no over due "85".
+''----------------------------------------------
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+
+Range("U18").Select
+''ActiveCell.FormulaR1C1 = "85"
+Range("U19").Select
+ActiveCell.FormulaR1C1 = _
+    "=IF(RC[-17]<>0,IF(LOWER(RC[16])=""overdue"",0,IF(RC[16]<>"""",R18C21,IF(RC[15]=""-"",0,""""))),"""")"
+Range("U19").Select
+
+Range("U19").AutoFill Destination:=Range("U19:U" & Lastrow)
+
+
+
+''Calculating Bags if overdue "0"/If no over due "80".
+''----------------------------------------------
+
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+
+Range("Z19").Select
+'ActiveCell.FormulaR1C1 = "=IF(RC[10]>1200,""0"",""60"")"
+     
+   ''         ActiveCell.FormulaR1C1 = _
+   ''     "=IF(RC[10]>1200,IF(RC[11]<>"""",""0"",""""),IF(RC[11]<>"""",R18C26,""""))"
+        
+        
+            ActiveCell.FormulaR1C1 = _
+        "=IF(LOWER(RC[11])=""overdue"",0,IF(RC[11]<>"""",R18C26,IF(RC[10]=""-"",0,"""")))"
+
+Range("Z19").AutoFill Destination:=Range("Z19:Z" & Lastrow)
+
+    Range(Selection, Selection.End(xlDown)).Select
+    With Selection
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlBottom
+        .WrapText = False
+        .Orientation = 0
+        .AddIndent = False
+        .IndentLevel = 0
+        .ShrinkToFit = False
+        .ReadingOrder = xlContext
+        .MergeCells = False
+    End With
+
+
+''Calculation for bags
+
+''Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+''Range("AD19").Select
+   ''  ActiveCell.FormulaR1C1 = _
+     ''   "=IF(RC[-1]<>"""",SUM(RC[-5]+RC[-4]+RC[-3]+RC[-2]+RC[-1])*RC[-15])"
+''ActiveCell.FormulaR1C1 = "=SUM(RC[-5]+RC[-4]+RC[-3]+RC[-2]+RC[-1])*RC[-15]"
+''Range("AD19").AutoFill Destination:=Range("AD19:AD" & Lastrow)
+
+
+   
+End Sub
+
+
+
+
+Sub Cleaning()
+
+    Dim Lastrow As Long
+    Lastrow = Range("K" & Rows.Count).End(xlUp).Row
+    ActiveSheet.Name = "Data"
+    Sheets.Add
+    ActiveSheet.Name = "Workings"
+    Sheets("Data").Select
+    Rows("1:1").Select
+    Selection.copy
+    Sheets("Workings").Select
+    Rows("1:1").Select
+    ActiveSheet.Paste
+    Range("B2").Select
+    Application.CutCopyMode = False
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,Data!RC)"
+    Range("C2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,Data!RC)"
+    Range("D2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,Data!RC)"
+    Range("E2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,Data!RC)"
+    Range("F2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,Data!RC)"
+    Range("G2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,Data!RC)"
+    Range("H2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,Data!RC)"
+    Range("I2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,Data!RC)"
+    Range("J2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("K2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("L2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("M2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("N2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("O2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("P2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("Q2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("R2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("S2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("T2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("U2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("V2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("W2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,R[1]C[-8])"
+    Range("W3").Select
+    Range("A2:W" & Lastrow).Select
+    Selection.FillDown
+    
+    Range("X2").Select
+    ActiveCell.FormulaR1C1 = "=IF(OR(RC[-1]="""",RC[-1]=0),""KO"","""")"
+    Range("X2").Select
+    Selection.AutoFill Destination:=Range("X2:X" & Lastrow)
+  
+    Cells.Select
+    
+    Selection.copy
+   '' Range("A1").select
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+   '' Selection.End(xlUp).Select
+    
+    
+    Rows("1:1").Select
+    Application.CutCopyMode = False
+    Selection.AutoFilter
+   
+   ' ActiveSheet.Range("$A$1:$X$4855").AutoFilter Field:=24, Criteria1:="<>"
+    ActiveSheet.Range("$A$1:$X$" & Lastrow).AutoFilter Field:=24, Criteria1:="<>"
+    Range("B1").Select
+    Call LoopUntilCellAppear
+    
+    ActiveCell.EntireRow.Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Delete Shift:=xlUp
+    Selection.AutoFilter
+    
+    
+    
+End Sub
+
+
+Sub LoopUntilCellAppear()
+ActiveCell.Offset(1, 0).Activate
+Do Until Selection.EntireRow.Hidden = False
+If Selection.EntireRow.Hidden = True Then
+ActiveCell.Offset(1, 0).Activate
+End If
+Loop
+End Sub
+            
+Sub xxxxxx()
+Range("B2").Select
+    Application.CutCopyMode = False
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,Data!RC)"
+    Range("C2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,Data!RC)"
+    Range("E2").Select
+    ActiveCell.FormulaR1C1 = "=IF(Data!RC10<>"""",Data!RC,Data!RC)"
+    
+    
+End Sub
+
+Sub CreateFolder(createFolder1)
+
+ Dim fdObj As Object
+ Dim slash As String
+ slash = "\"
+ 
+ pathWorkbook = ThisWorkbook.Path
+
+
+If Dir(createFolder1) <> "" Then
+    Exit Sub
+    
+End If
+
+
+ Set fdObj = CreateObject("Scripting.FileSystemObject")
+
+    If Not fdObj.FolderExists(createFolder1) Then
+        fdObj.CreateFolder (createFolder1)
+    End If
+
+End Sub
+
+
+ Sub CopyFileWithFSO(SourceFilePath As String, DestPath As String, OverWrite As Boolean)
+' (1) copies one file from one folder to another folder with the VBA FileSystemObject
+' (2) contains extensive error handling (safeguards)
+' (3) requires a reference to the object library "Microsoft Scripting Runtime" under Options > Tools > References...
+' in the Visual Basic Editor.
+
+    Dim blFileExists As Boolean, blSourceErr As Boolean
+    Dim strFileName As String, strSuccessMsg As String, strNewDestPath As String, strNewSourcePath As String
+    ''Dim fso As Scripting.FileSystemObject
+    Dim strErrMsg As String
+    
+    Set fso = New Scripting.FileSystemObject
+    
+    With fso
+        
+        strNewDestPath = .BuildPath(.GetAbsolutePathName(DestPath), "\")
+        strFileName = .GetFileName(SourceFilePath)
+    
+        'check if the source file exists
+        If Not .FileExists(SourceFilePath) Then
+            
+            ' check if the root drive was specified
+            If .DriveExists(Left(SourceFilePath, 2)) Then
+                blSourceErr = True
+            
+            ' the provided source path is incomplete
+            ' build new path and ask the user if he accepts the suggestion
+            Else
+                strNewSourcePath = .BuildPath(.GetAbsolutePathName(SourceFilePath), "")
+                If Not MsgBox("The source path " & Chr(34) & SourceFilePath & Chr(34) & _
+                    " is incomplete. Will you accept the following suggestion: " _
+                    & Chr(34) & strNewSourcePath & Chr(34) & "?", vbYesNo, "Confirm new source path") = vbYes Then _
+                        blSourceErr = True
+            End If
+            
+            ' error
+            If blSourceErr Then _
+                strErrMsg = "The source file," & Chr(34) & strFileName & Chr(34) & _
+                        " does not exist, or the specified path to the file, " & Chr(34) & _
+                        Replace(SourceFilePath, strFileName, "") & Chr(34) & " is incorrect."
+        
+        ' check if the destination folder already exists
+        ElseIf Not .FolderExists(strNewDestPath) Then
+        
+            ' prompt the user if the destination folder should be created
+            If MsgBox("The destination folder, " & Chr(34) & strNewDestPath & Chr(34) & ", does not exist. Do you want to create it?", vbYesNo, _
+                "Create new folder?") = vbYes Then
+                .CreateFolder (strNewDestPath)
+            Else
+                strErrMsg = "The destination folder could not be created."
+            End If
+        
+        ' check if the file already exists in the destination folder
+        Else
+            blFileExists = .FileExists(strNewDestPath & strFileName)
+            If Not OverWrite Then
+                If blFileExists Then _
+                    strErrMsg = "The file, " & Chr(34) & strFileName & Chr(34) & _
+                        ", already exists in the destination folder, " & Chr(34) & _
+                        strNewDestPath & Chr(34) & "."
+            End If
+        End If
+        
+        ' attempt to copy file
+        If strErrMsg = vbNullString Then
+            On Error Resume Next
+            If strNewSourcePath = vbNullString Then strNewSourcePath = SourceFilePath
+            Call .CopyFile(strNewSourcePath, strNewDestPath, OverWrite)
+            If Err.Number <> 0 Then strErrMsg = "Run-time error " & Err.Number & Chr(10) & Err.Description
+            On Error GoTo 0
+        End If
+        
+        ' succesful copy
+        If strErrMsg = vbNullString Then
+            strSuccessMsg = "The file" & Chr(34) & strFileName & Chr(34) & " was copied to " & _
+                Chr(34) & strNewDestPath & Chr(34) & "."
+            If blFileExists Then strSuccessMsg = strSuccessMsg & Chr(10) & _
+                "(Note, the existing file in the destination folder was overwritten)."
+            'MsgBox strSuccessMsg, vbInformation, "File copied"
+        
+        ' error
+        Else
+            MsgBox strErrMsg, vbCritical, "Error!"
+        End If
+        
+    End With
+
+End Sub
+
+
+
+
+
+Sub Protection_Sheet()
+
+
+
+'Lock column A to AK
+Sheets("AA 2").Select
+
+
+
+Dim Lastrow As Long
+
+Lastrow = Range("A" & Rows.Count).End(xlUp).Row
+''ActiveSheet.Unprotect Password:="EGS2020"
+'Cells.Locked = False
+'
+'Columns("A:AK").EntireColumn.Locked = True
+'
+'Range("A1:I13").Locked = False
+'
+'Range("T18:V18").Locked = False
+'
+'Range("Y18:AC18").Locked = False
+
+ActiveSheet.Protection.AllowEditRanges.Add Title:="Range1", Range:=Range( _
+    "A1:I13")
+
+Range("T18:W18").Select
+ActiveSheet.Protection.AllowEditRanges.Add Title:="Range2", Range:=Range( _
+    "T18:W18")
+
+Range("Y18:AD18").Select
+ActiveSheet.Protection.AllowEditRanges.Add Title:="Range3", Range:=Range( _
+    "Y18:AD18")
+''ActiveSheet.Protect DrawingObjects:=True, Contents:=True, Scenarios:=True
+
+
+
+ActiveSheet.Protection.AllowEditRanges.Add Title:="Range4", Range:=Range("AA18:AB" & Lastrow)
+
+ActiveSheet.Protection.AllowEditRanges.Add Title:="Range5", Range:=Range("Z18:Z" & Lastrow)
+
+
+ActiveSheet.Protection.AllowEditRanges.Add Title:="Range6", Range:=Range("Z18:Z" & Lastrow)
+
+ActiveSheet.Protection.AllowEditRanges.Add Title:="Range7", Range:=Range("AL:BA")
+
+ActiveSheet.Protection.AllowEditRanges.Add Title:="Range8", Range:=Range("U18:V" & Lastrow)
+
+ActiveSheet.Protect Password:="ANGLO_LAFARGE", DrawingObjects:=True, Contents:=True, Scenarios:=True
+''ActiveSheet.Protect Password:="ANGLO_LAFARGE", UserInterfaceOnly:=True, Contents:=True, EnableOutlining:=True
+
+
+    
+' Allow row to be filtered on a protected worksheet.
+ If ActiveSheet.Protection.AllowFiltering = False Then
+ ActiveSheet.Protect AllowFiltering:=True
+ End If
+ 
+
+
+End Sub
+
+
+
+
+
+
+
+
+Sub CreatingFolder()
+
+
+
+
+thisfolderpath = ThisWorkbook.Path
+
+ThisMonthFolder = thisfolderpath & "\" & Format(DateAdd("M", -1, Now), "MMMM")
+
+If Dir(ThisMonthFolder) = "" Then
+    CreateFolder (ThisMonthFolder)
+End If
+
+AgeingFolder = ThisMonthFolder & "\Ageing Report\"
+
+If Dir(AgeingFolder) = "" Then
+    CreateFolder (AgeingFolder)
+End If
+
+End Sub
