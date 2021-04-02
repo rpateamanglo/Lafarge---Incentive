@@ -1,0 +1,82 @@
+Sub GLT()
+
+Dim wb As Workbook
+Dim myPath As String
+Dim myPath2 As String
+Dim strFile As String
+Dim myFile As String
+Dim wkbSource As Workbook
+Set wkbDest = ThisWorkbook
+Dim Lastrow As Long
+Dim lastcolumn As Long
+Dim Count As Integer
+Dim myPath2Filename As String
+Dim myPathFilename As String
+
+
+'Filepath for execucation
+
+myPath = ThisWorkbook.Sheets("Sheet1").Range("C3").Value
+
+myPath2 = ThisWorkbook.Sheets("Sheet1").Range("C4").Value
+
+myPathFilename = ThisWorkbook.Sheets("Sheet1").Range("D3").Value
+
+myPath2Filename = ThisWorkbook.Sheets("Sheet1").Range("D4").Value
+
+
+Workbooks.Open Filename:=myPath
+ActiveSheet.Select
+
+Workbooks.Open Filename:=myPath2
+ActiveSheet.Select
+
+
+''Copy & paste data
+
+Windows("GLT.xlsx").Activate
+Cells.Select
+Selection.ClearContents
+
+Windows("Grand Livre Tiers.xlsm").Activate
+
+
+
+Sheets("Critere").Select
+Range("B6").Select
+ActiveCell.FormulaR1C1 = Today & Format(Now(), "YYYYMMDD")
+Range("C6").Select
+ActiveCell.FormulaR1C1 = Today & Format(Now(), "YYYYMMDD")
+Sheets("Base").Select
+ActiveWorkbook.RefreshAll
+
+    
+''Sheets("Base").Select
+Rows("3:3").Select
+Selection.AutoFilter
+Selection.AutoFilter
+Range("M3").Select
+Selection.AutoFilter
+ActiveSheet.Range("$A$3:$O$41").AutoFilter Field:=13, Criteria1:="BOT"
+Cells.Select
+Selection.Copy
+
+Windows("GLT.xlsx").Activate
+Range("A1").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+    :=False, Transpose:=False
+
+''paste value
+
+''ActiveSheet.Paste
+
+
+        
+Application.CutCopyMode = False
+Windows("Grand Livre Tiers.xlsm").Close True
+Windows("GLT.xlsx").Close True
+Application.CutCopyMode = True
+
+
+End Sub
+
