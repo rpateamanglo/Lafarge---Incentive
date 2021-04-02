@@ -1,0 +1,50 @@
+Sub SendingEmail()
+
+   Dim iMsg As Object
+    Dim iConf As Object
+    Dim strbody As String
+    Dim Flds As Variant
+    Dim PDFfileName As String
+    
+    Set iMsg = CreateObject("CDO.Message")
+    Set iConf = CreateObject("CDO.Configuration")
+
+    iConf.Load -1    ' CDO Source Defaults
+    Set Flds = iConf.Fields
+    With Flds
+        .Item("http://schemas.microsoft.com/cdo/configuration/sendusing") = 2
+        .Item("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = True
+        
+        .Item("http://schemas.microsoft.com/cdo/configuration/smtpserver") = Sheets("Configuration").Range("D5").Value
+        .Item("http://schemas.microsoft.com/cdo/configuration/smtpserverport") = Sheets("Configuration").Range("D4").Value
+        .Item("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = 1
+        .Item("http://schemas.microsoft.com/cdo/configuration/sendusername") = Sheets("Configuration").Range("D2").Value
+        .Item("http://schemas.microsoft.com/cdo/configuration/sendpassword") = Sheets("Configuration").Range("D3").Value
+
+        .Update
+    End With
+
+    'PDFfileName = Cells(28, 3)   'This needs to be the complete path and filename if it is used, I kept that info in C28.
+
+    'strbody = "Automated email" & vbNewLine & vbNewLine & _
+              "Info Here" & vbNewLine & vbNewLine & _
+              "Your Name Here"
+
+    strbody = Sheets("Home").Range("D11").Value
+    attachmentfile = Sheets("Home").Range("D22").Value
+    
+    With iMsg
+        Set .Configuration = iConf
+        .To = Sheets("Home").Range("D7").Value    'this can be any email address
+        .CC = Sheets("Home").Range("D8").Value
+        .BCC = Sheets("Home").Range("D9").Value
+        .From = Sheets("Home").Range("D6").Value    'MUST BE THE SAME AS USED ABOVE
+        .Subject = Sheets("Home").Range("D10").Value      'I had the Month and Year in these two cells, remove and change
+        .TextBody = strbody
+        .AddAttachment attachmentfile  'PDFfileName  - this was my calendar
+        .Send
+    End With
+
+End Sub
+
+
